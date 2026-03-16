@@ -1,0 +1,1625 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JS Prototypes: Zero to Hero</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0d0f14;
+        --surface: #141720;
+        --surface2: #1c2030;
+        --border: #252a3a;
+        --text: #cdd6f4;
+        --muted: #6c7086;
+        --green: #a6e3a1;
+        --teal: #94e2d5;
+        --blue: #89b4fa;
+        --purple: #cba6f7;
+        --yellow: #f9e2af;
+        --red: #f38ba8;
+        --orange: #fab387;
+        --accent: #89dceb;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      /* HEADER */
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 48px 0 40px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      header::before {
+        content: "";
+        position: absolute;
+        top: -60px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 600px;
+        height: 200px;
+        background: radial-gradient(
+          ellipse,
+          rgba(137, 220, 235, 0.07) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+      }
+      .badge {
+        display: inline-block;
+        background: rgba(137, 220, 235, 0.1);
+        border: 1px solid rgba(137, 220, 235, 0.25);
+        color: var(--accent);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        padding: 4px 12px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+      h1 {
+        font-family: "Fraunces", serif;
+        font-size: clamp(32px, 5vw, 56px);
+        font-weight: 600;
+        color: #fff;
+        line-height: 1.1;
+        margin-bottom: 14px;
+      }
+      h1 span {
+        color: var(--accent);
+      }
+      .subtitle {
+        color: var(--muted);
+        font-size: 13px;
+        max-width: 500px;
+        margin: 0 auto 32px;
+      }
+      .level-pills {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+      }
+      .pill {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 11px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        text-decoration: none;
+        transition: all 0.2s;
+      }
+      .pill:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      /* LAYOUT */
+      .wrapper {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* TOC */
+      .toc {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 28px;
+        margin: 48px auto;
+        max-width: 820px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .toc-title {
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 16px;
+      }
+      .toc-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 8px;
+      }
+      .toc-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text);
+        font-size: 12px;
+        transition: background 0.15s;
+      }
+      .toc-item:hover {
+        background: var(--surface2);
+      }
+      .toc-num {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 10px;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      /* SECTIONS */
+      .chapter {
+        padding: 64px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .chapter:last-child {
+        border-bottom: none;
+      }
+      .chapter-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+      .chapter-num {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--accent);
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        white-space: nowrap;
+        margin-top: 4px;
+      }
+      h2 {
+        font-family: "Fraunces", serif;
+        font-size: clamp(22px, 3vw, 30px);
+        font-weight: 600;
+        color: #fff;
+        line-height: 1.2;
+      }
+      h3 {
+        font-size: 13px;
+        color: var(--accent);
+        letter-spacing: 0.06em;
+        margin: 28px 0 10px;
+        text-transform: uppercase;
+      }
+      p {
+        color: var(--text);
+        line-height: 1.8;
+        margin-bottom: 16px;
+      }
+      p code,
+      li code {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--yellow);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        padding: 1px 6px;
+        border-radius: 4px;
+      }
+      ul {
+        padding-left: 20px;
+        margin-bottom: 16px;
+      }
+      li {
+        color: var(--text);
+        margin-bottom: 6px;
+        line-height: 1.7;
+      }
+
+      /* CODE BLOCKS */
+      .code-block {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+      .code-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface2);
+      }
+      .code-lang {
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .code-label {
+        font-size: 11px;
+        color: var(--teal);
+        background: rgba(148, 226, 213, 0.08);
+        border: 1px solid rgba(148, 226, 213, 0.2);
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+      pre {
+        padding: 20px;
+        overflow-x: auto;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      /* Syntax token colors */
+      .kw {
+        color: var(--purple);
+      }
+      .fn {
+        color: var(--blue);
+      }
+      .str {
+        color: var(--green);
+      }
+      .num {
+        color: var(--orange);
+      }
+      .cmt {
+        color: var(--muted);
+        font-style: italic;
+      }
+      .cls {
+        color: var(--yellow);
+      }
+      .prop {
+        color: var(--teal);
+      }
+      .new {
+        color: var(--red);
+      }
+      .op {
+        color: var(--muted);
+      }
+
+      /* CALLOUT BOXES */
+      .callout {
+        border-radius: 10px;
+        padding: 18px 20px;
+        margin: 24px 0;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+      }
+      .callout-icon {
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .callout-body {
+        flex: 1;
+      }
+      .callout-title {
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        font-weight: 500;
+      }
+      .callout p {
+        margin-bottom: 0;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      .callout-key {
+        background: rgba(249, 226, 175, 0.07);
+        border: 1px solid rgba(249, 226, 175, 0.2);
+      }
+      .callout-key .callout-title {
+        color: var(--yellow);
+      }
+      .callout-tip {
+        background: rgba(166, 227, 161, 0.07);
+        border: 1px solid rgba(166, 227, 161, 0.2);
+      }
+      .callout-tip .callout-title {
+        color: var(--green);
+      }
+      .callout-warn {
+        background: rgba(243, 139, 168, 0.07);
+        border: 1px solid rgba(243, 139, 168, 0.2);
+      }
+      .callout-warn .callout-title {
+        color: var(--red);
+      }
+
+      /* INLINE DIAGRAMS */
+      .diagram-wrap {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 24px;
+        margin: 24px 0;
+        overflow-x: auto;
+      }
+      .diagram-wrap svg text {
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      /* COMPARISON TABLE */
+      .compare {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 12px;
+      }
+      .compare th {
+        background: var(--surface2);
+        color: var(--accent);
+        padding: 10px 14px;
+        text-align: left;
+        border: 1px solid var(--border);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+      .compare td {
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        color: var(--text);
+        line-height: 1.6;
+      }
+      .compare tr:nth-child(even) td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .compare td code {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--yellow);
+        font-size: 11px;
+        padding: 1px 5px;
+        border-radius: 3px;
+      }
+      .good {
+        color: var(--green);
+      }
+      .bad {
+        color: var(--red);
+      }
+
+      /* CHAIN VISUAL */
+      .chain {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0;
+        margin: 20px 0;
+        font-size: 12px;
+      }
+      .chain-node {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 14px;
+        color: var(--text);
+        white-space: nowrap;
+      }
+      .chain-node.highlight {
+        border-color: var(--teal);
+        color: var(--teal);
+      }
+      .chain-arrow {
+        color: var(--muted);
+        font-size: 14px;
+        padding: 0 8px;
+      }
+      .chain-null {
+        background: rgba(243, 139, 168, 0.1);
+        border: 1px solid rgba(243, 139, 168, 0.3);
+        color: var(--red);
+        border-radius: 8px;
+        padding: 8px 14px;
+      }
+
+      /* FOOTER */
+      footer {
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        text-align: center;
+        padding: 40px 24px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      /* SCROLL PROGRESS */
+      #progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 2px;
+        background: var(--accent);
+        width: 0%;
+        z-index: 1000;
+        transition: width 0.1s;
+      }
+
+      @media (max-width: 600px) {
+        .chapter-header {
+          flex-direction: column;
+        }
+        .chain {
+          gap: 6px;
+        }
+        .toc-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="progress-bar"></div>
+
+    <header>
+      <div class="badge">JavaScript Deep Dive</div>
+      <h1>Prototype <span>Zero → Hero</span></h1>
+      <p class="subtitle">
+        A complete guide to inheritance and the prototype chain — from the
+        ground up.
+      </p>
+      <div class="level-pills">
+        <a href="#l0" class="pill">0 · What is a prototype?</a>
+        <a href="#l1" class="pill">1 · Property lookup</a>
+        <a href="#l2" class="pill">2 · Inheriting methods</a>
+        <a href="#l3" class="pill">3 · Constructors</a>
+        <a href="#l4" class="pill">4 · Longer chains</a>
+        <a href="#l5" class="pill">5 · Class syntax</a>
+        <a href="#l6" class="pill">6 · Creation patterns</a>
+        <a href="#l7" class="pill">7 · Gotchas</a>
+      </div>
+    </header>
+
+    <div class="wrapper">
+      <div class="toc">
+        <div class="toc-title">Chapters</div>
+        <div class="toc-grid">
+          <a href="#l0" class="toc-item"
+            ><span class="toc-num">0</span> What is a prototype?</a
+          >
+          <a href="#l1" class="toc-item"
+            ><span class="toc-num">1</span> The prototype chain</a
+          >
+          <a href="#l2" class="toc-item"
+            ><span class="toc-num">2</span> Inheriting methods</a
+          >
+          <a href="#l3" class="toc-item"
+            ><span class="toc-num">3</span> Constructor functions</a
+          >
+          <a href="#l4" class="toc-item"
+            ><span class="toc-num">4</span> Longer chains</a
+          >
+          <a href="#l5" class="toc-item"
+            ><span class="toc-num">5</span> Class syntax sugar</a
+          >
+          <a href="#l6" class="toc-item"
+            ><span class="toc-num">6</span> Creation patterns</a
+          >
+          <a href="#l7" class="toc-item"
+            ><span class="toc-num">7</span> Gotchas &amp; performance</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!--  LEVEL 0 · What is a prototype?                -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div class="wrapper">
+      <section class="chapter" id="l0">
+        <div class="chapter-header">
+          <span class="chapter-num">Level 00</span>
+          <h2>What even is a prototype?</h2>
+        </div>
+
+        <p>
+          In class-based languages like Java or C++, you define a blueprint (a
+          class) and then stamp out objects from it. JavaScript is different —
+          it uses <strong style="color: #fff">prototypal inheritance</strong>.
+          There are no blueprints. Instead, objects inherit directly from other
+          objects.
+        </p>
+
+        <p>
+          Think of it like a reference chain. Every object in JavaScript holds a
+          hidden link — called <code>[[Prototype]]</code> — that points to
+          another object. That second object is its "prototype" (its parent). If
+          you ask the object for a property it doesn't have, it silently looks
+          at its parent. And if the parent doesn't have it either, it looks at
+          <em>its</em> parent. This chain of lookups is the
+          <strong style="color: #fff">prototype chain</strong>.
+        </p>
+
+        <div class="callout callout-key">
+          <span class="callout-icon">💡</span>
+          <div class="callout-body">
+            <div class="callout-title">Core mental model</div>
+            <p>
+              Every object has a hidden <code>[[Prototype]]</code> link to
+              another object (or <code>null</code>). Property lookups walk up
+              this chain until they find the property or hit <code>null</code>.
+            </p>
+          </div>
+        </div>
+
+        <h3>The simplest possible example</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span>
+            <span class="code-label">basics</span>
+          </div>
+          <pre><span class="cmt">// Using __proto__ here just for illustration.</span>
+<span class="cmt">// In real code, use Object.create() or class syntax.</span>
+ 
+<span class="kw">const</span> <span class="prop">animal</span> = {
+  <span class="prop">breathes</span>: <span class="kw">true</span>,
+};
+ 
+<span class="kw">const</span> <span class="prop">dog</span> = {
+  <span class="prop">__proto__</span>: <span class="prop">animal</span>,  <span class="cmt">// dog's [[Prototype]] = animal</span>
+  <span class="prop">name</span>: <span class="str">"Rex"</span>,
+};
+ 
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">dog</span>.<span class="prop">name</span>);     <span class="cmt">// "Rex"    ← own property</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">dog</span>.<span class="prop">breathes</span>); <span class="cmt">// true     ← inherited from animal</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">dog</span>.<span class="prop">size</span>);     <span class="cmt">// undefined ← not found anywhere in chain</span></pre>
+        </div>
+
+        <p>When you access <code>dog.breathes</code>, JavaScript:</p>
+        <ul>
+          <li>Checks <code>dog</code> itself — not found</li>
+          <li>
+            Follows the <code>[[Prototype]]</code> link to <code>animal</code> —
+            found! Returns <code>true</code>
+          </li>
+        </ul>
+        <p>
+          When you access <code>dog.size</code>, it checks <code>dog</code>,
+          then <code>animal</code>, then <code>Object.prototype</code>, then
+          hits <code>null</code> — returns <code>undefined</code>.
+        </p>
+
+        <div class="diagram-wrap">
+          <svg width="100%" viewBox="0 0 680 90">
+            <!-- dog -->
+            <rect
+              x="30"
+              y="20"
+              width="140"
+              height="50"
+              rx="8"
+              fill="#1c2030"
+              stroke="#252a3a"
+              stroke-width="1"
+            />
+            <text
+              x="100"
+              y="41"
+              text-anchor="middle"
+              fill="#94e2d5"
+              font-size="12"
+              font-weight="500"
+            >
+              dog
+            </text>
+            <text
+              x="100"
+              y="59"
+              text-anchor="middle"
+              fill="#6c7086"
+              font-size="11"
+            >
+              name: "Rex"
+            </text>
+            <!-- arrow -->
+            <line
+              x1="170"
+              y1="45"
+              x2="235"
+              y2="45"
+              stroke="#6c7086"
+              stroke-width="1.5"
+              marker-end="url(#arr0)"
+            />
+            <text
+              x="202"
+              y="40"
+              text-anchor="middle"
+              fill="#6c7086"
+              font-size="10"
+            >
+              [[Prototype]]
+            </text>
+            <!-- animal -->
+            <rect
+              x="235"
+              y="20"
+              width="160"
+              height="50"
+              rx="8"
+              fill="#1c2030"
+              stroke="#252a3a"
+              stroke-width="1"
+            />
+            <text
+              x="315"
+              y="41"
+              text-anchor="middle"
+              fill="#94e2d5"
+              font-size="12"
+              font-weight="500"
+            >
+              animal
+            </text>
+            <text
+              x="315"
+              y="59"
+              text-anchor="middle"
+              fill="#6c7086"
+              font-size="11"
+            >
+              breathes: true
+            </text>
+            <!-- arrow -->
+            <line
+              x1="395"
+              y1="45"
+              x2="455"
+              y2="45"
+              stroke="#6c7086"
+              stroke-width="1.5"
+              marker-end="url(#arr0)"
+            />
+            <text
+              x="425"
+              y="40"
+              text-anchor="middle"
+              fill="#6c7086"
+              font-size="10"
+            >
+              [[Prototype]]
+            </text>
+            <!-- Object.prototype -->
+            <rect
+              x="455"
+              y="20"
+              width="130"
+              height="50"
+              rx="8"
+              fill="#1c2030"
+              stroke="#252a3a"
+              stroke-width="1"
+            />
+            <text
+              x="520"
+              y="41"
+              text-anchor="middle"
+              fill="#94e2d5"
+              font-size="12"
+              font-weight="500"
+            >
+              Object.prototype
+            </text>
+            <text
+              x="520"
+              y="59"
+              text-anchor="middle"
+              fill="#6c7086"
+              font-size="11"
+            >
+              toString(), etc.
+            </text>
+            <!-- arrow to null -->
+            <line
+              x1="585"
+              y1="45"
+              x2="635"
+              y2="45"
+              stroke="#6c7086"
+              stroke-width="1.5"
+              marker-end="url(#arr0)"
+            />
+            <text
+              x="650"
+              y="50"
+              text-anchor="middle"
+              fill="#f38ba8"
+              font-size="11"
+            >
+              null
+            </text>
+            <defs>
+              <marker
+                id="arr0"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path
+                  d="M2 1L8 5L2 9"
+                  fill="none"
+                  stroke="#6c7086"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </marker>
+            </defs>
+          </svg>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <!--  LEVEL 1 · The Prototype Chain                 -->
+      <!-- ═══════════════════════════════════════════════ -->
+      <section class="chapter" id="l1">
+        <div class="chapter-header">
+          <span class="chapter-num">Level 01</span>
+          <h2>Property lookup &amp; property shadowing</h2>
+        </div>
+
+        <p>
+          The lookup process walks <em>up</em> the chain. It stops at the
+          <strong style="color: #fff">first match</strong> it finds — even if
+          later ancestors also have that property. This is called
+          <strong style="color: #fff">property shadowing</strong>.
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span>
+            <span class="code-label">property shadowing</span>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">o</span> = {
+  <span class="prop">a</span>: <span class="num">1</span>,
+  <span class="prop">b</span>: <span class="num">2</span>,
+  <span class="prop">__proto__</span>: {
+    <span class="prop">b</span>: <span class="num">3</span>,  <span class="cmt">// ← b also exists in parent</span>
+    <span class="prop">c</span>: <span class="num">4</span>,
+  },
+};
+ 
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">o</span>.<span class="prop">a</span>); <span class="cmt">// 1  ← own property</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">o</span>.<span class="prop">b</span>); <span class="cmt">// 2  ← own property SHADOWS the parent's b:3</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">o</span>.<span class="prop">c</span>); <span class="cmt">// 4  ← not on o, found on parent</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">o</span>.<span class="prop">d</span>); <span class="cmt">// undefined ← not found anywhere</span></pre>
+        </div>
+
+        <h3>How the lookup works step-by-step</h3>
+        <p>For <code>o.b</code>:</p>
+        <ul>
+          <li>
+            Does <code>o</code> have an own property called <code>b</code>?
+            <strong class="good">Yes → return 2. Stop.</strong>
+          </li>
+        </ul>
+        <p>For <code>o.c</code>:</p>
+        <ul>
+          <li>
+            Does <code>o</code> have an own property called <code>c</code>? No →
+            go up
+          </li>
+          <li>
+            Does <code>o.[[Prototype]]</code> have <code>c</code>?
+            <strong class="good">Yes → return 4. Stop.</strong>
+          </li>
+        </ul>
+        <p>For <code>o.d</code>:</p>
+        <ul>
+          <li>Does <code>o</code> have <code>d</code>? No → go up</li>
+          <li>Does parent have <code>d</code>? No → go up</li>
+          <li>
+            Does <code>Object.prototype</code> have <code>d</code>? No → go up
+          </li>
+          <li>
+            Next is <code>null</code> —
+            <strong class="bad">chain exhausted → return undefined</strong>
+          </li>
+        </ul>
+
+        <div class="callout callout-tip">
+          <span class="callout-icon">✅</span>
+          <div class="callout-body">
+            <div class="callout-title">Checking own vs inherited</div>
+            <p>
+              Use <code>Object.hasOwn(obj, 'prop')</code> (modern) or
+              <code>obj.hasOwnProperty('prop')</code> to check if a property
+              belongs to the object itself — not its prototype chain.
+            </p>
+          </div>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span
+            ><span class="code-label">own vs inherited</span>
+          </div>
+          <pre><span class="fn">Object</span>.<span class="fn">hasOwn</span>(<span class="prop">o</span>, <span class="str">'a'</span>); <span class="cmt">// true  — own property</span>
+<span class="fn">Object</span>.<span class="fn">hasOwn</span>(<span class="prop">o</span>, <span class="str">'c'</span>); <span class="cmt">// false — inherited from prototype</span></pre>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <!--  LEVEL 2 · Inheriting Methods                  -->
+      <!-- ═══════════════════════════════════════════════ -->
+      <section class="chapter" id="l2">
+        <div class="chapter-header">
+          <span class="chapter-num">Level 02</span>
+          <h2>Inheriting methods &amp; the <code>this</code> keyword</h2>
+        </div>
+
+        <p>
+          JavaScript doesn't have "methods" as a separate concept. A method is
+          just a
+          <strong style="color: #fff">function stored as a property</strong>.
+          When an object inherits a function from its prototype, the function
+          works exactly as if it were the object's own — with one key rule:
+        </p>
+
+        <div class="callout callout-key">
+          <span class="callout-icon">💡</span>
+          <div class="callout-body">
+            <div class="callout-title">
+              The golden rule of <code>this</code>
+            </div>
+            <p>
+              When an inherited function runs, <code>this</code> refers to the
+              <strong>object that called it</strong> — not the prototype where
+              the function lives.
+            </p>
+          </div>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span
+            ><span class="code-label">this with inheritance</span>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">parent</span> = {
+  <span class="prop">value</span>: <span class="num">2</span>,
+  <span class="fn">method</span>() {
+    <span class="kw">return</span> <span class="kw">this</span>.<span class="prop">value</span> + <span class="num">1</span>; <span class="cmt">// 'this' = whoever calls this fn</span>
+  }
+};
+ 
+<span class="kw">const</span> <span class="prop">child</span> = {
+  <span class="prop">__proto__</span>: <span class="prop">parent</span>,
+};
+ 
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">parent</span>.<span class="fn">method</span>()); <span class="cmt">// 3  (this = parent, parent.value = 2)</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">child</span>.<span class="fn">method</span>());  <span class="cmt">// 3  (this = child, child.value → parent.value = 2)</span>
+ 
+<span class="prop">child</span>.<span class="prop">value</span> = <span class="num">10</span>; <span class="cmt">// add own 'value' to child</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">child</span>.<span class="fn">method</span>());  <span class="cmt">// 11 (this = child, child.value = 10)</span>
+<span class="cmt">// parent.value is still 2 — child shadows it</span></pre>
+        </div>
+
+        <p>
+          Notice: <code>method()</code> is defined once on <code>parent</code>,
+          but <code>child</code> inherits and calls it. <code>this</code> inside
+          the function dynamically points to the calling object. This is why
+          shared methods on prototypes are so powerful.
+        </p>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <!--  LEVEL 3 · Constructor Functions               -->
+      <!-- ═══════════════════════════════════════════════ -->
+      <section class="chapter" id="l3">
+        <div class="chapter-header">
+          <span class="chapter-num">Level 03</span>
+          <h2>Constructor functions &amp; the <code>new</code> keyword</h2>
+        </div>
+
+        <p>
+          Manually setting <code>__proto__</code> on every object is tedious.
+          <strong style="color: #fff">Constructor functions</strong> automate
+          this. When you call a function with <code>new</code>, JavaScript does
+          four things behind the scenes:
+        </p>
+
+        <ul>
+          <li>Creates a fresh empty object</li>
+          <li>
+            Sets that object's <code>[[Prototype]]</code> to
+            <code>ConstructorFn.prototype</code>
+          </li>
+          <li>
+            Runs the function with <code>this</code> pointing to the new object
+          </li>
+          <li>
+            Returns the new object (unless the function explicitly returns
+            another object)
+          </li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span
+            ><span class="code-label">constructor function</span>
+          </div>
+          <pre><span class="kw">function</span> <span class="cls">Box</span>(<span class="prop">value</span>) {
+  <span class="kw">this</span>.<span class="prop">value</span> = <span class="prop">value</span>; <span class="cmt">// 'this' = the new object being created</span>
+}
+ 
+<span class="cmt">// Add shared methods to the prototype ONCE</span>
+<span class="cls">Box</span>.<span class="prop">prototype</span>.<span class="fn">getValue</span> = <span class="kw">function</span>() {
+  <span class="kw">return</span> <span class="kw">this</span>.<span class="prop">value</span>;
+};
+ 
+<span class="kw">const</span> <span class="prop">b1</span> = <span class="kw">new</span> <span class="cls">Box</span>(<span class="num">42</span>);
+<span class="kw">const</span> <span class="prop">b2</span> = <span class="kw">new</span> <span class="cls">Box</span>(<span class="num">99</span>);
+ 
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">b1</span>.<span class="fn">getValue</span>()); <span class="cmt">// 42</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">b2</span>.<span class="fn">getValue</span>()); <span class="cmt">// 99</span>
+ 
+<span class="cmt">// Both share the SAME function in memory — not duplicated</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">b1</span>.<span class="fn">getValue</span> === <span class="prop">b2</span>.<span class="fn">getValue</span>); <span class="cmt">// true ✓</span>
+ 
+<span class="cmt">// Verify the prototype chain</span>
+<span class="fn">Object</span>.<span class="fn">getPrototypeOf</span>(<span class="prop">b1</span>) === <span class="cls">Box</span>.<span class="prop">prototype</span>; <span class="cmt">// true</span>
+<span class="cmt">// b1 → Box.prototype → Object.prototype → null</span></pre>
+        </div>
+
+        <h3>Why put methods on the prototype?</h3>
+        <p>
+          If you defined <code>getValue</code> inside the constructor with
+          <code>this.getValue = function() {...}</code>, every single instance
+          would get its <em>own copy</em> of that function — wasting memory.
+          Putting it on <code>Box.prototype</code> means all instances share one
+          copy.
+        </p>
+
+        <div class="diagram-wrap">
+          <svg width="100%" viewBox="0 0 680 170">
+            <defs>
+              <marker
+                id="arr1"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path
+                  d="M2 1L8 5L2 9"
+                  fill="none"
+                  stroke="#6c7086"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </marker>
+              <marker
+                id="arr1b"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path
+                  d="M2 1L8 5L2 9"
+                  fill="none"
+                  stroke="#94e2d5"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </marker>
+            </defs>
+            <!-- b1 -->
+            <rect
+              x="30"
+              y="20"
+              width="110"
+              height="50"
+              rx="8"
+              fill="#1c2030"
+              stroke="#252a3a"
+            />
+            <text
+              x="85"
+              y="40"
+              text-anchor="middle"
+              fill="#cdd6f4"
+              font-size="12"
+              font-weight="500"
+            >
+              b1
+            </text>
+            <text
+              x="85"
+              y="58"
+              text-anchor="middle"
+              fill="#6c7086"
+              font-size="11"
+            >
+              value: 42
+            </text>
+            <!-- b2 -->
+            <rect
+              x="30"
+              y="100"
+              width="110"
+              height="50"
+              rx="8"
+              fill="#1c2030"
+              stroke="#252a3a"
+            />
+            <text
+              x="85"
+              y="120"
+              text-anchor="middle"
+              fill="#cdd6f4"
+              font-size="12"
+              font-weight="500"
+            >
+              b2
+            </text>
+            <text
+              x="85"
+              y="138"
+              text-anchor="middle"
+              fill="#6c7086"
+              font-size="11"
+            >
+              value: 99
+            </text>
+            <!-- Box.prototype -->
+            <rect
+              x="260"
+              y="55"
+              width="200"
+              height="60"
+              rx="8"
+              fill="#1c2030"
+              stroke="#94e2d5"
+              stroke-width="1"
+            />
+            <text
+              x="360"
+              y="76"
+              text-anchor="middle"
+              fill="#94e2d5"
+              font-size="12"
+              font-weight="500"
+            >
+              Box.prototype
+            </text>
+            <text
+              x="360"
+              y="95"
+              text-anchor="middle"
+              fill="#6c7086"
+              font-size="11"
+            >
+              getValue() ← shared
+            </text>
+            <!-- arrows b1 → prototype -->
+            <line
+              x1="140"
+              y1="45"
+              x2="258"
+              y2="80"
+              stroke="#94e2d5"
+              stroke-width="1.2"
+              marker-end="url(#arr1b)"
+            />
+            <!-- arrows b2 → prototype -->
+            <line
+              x1="140"
+              y1="125"
+              x2="258"
+              y2="100"
+              stroke="#94e2d5"
+              stroke-width="1.2"
+              marker-end="url(#arr1b)"
+            />
+            <!-- label on arrows -->
+            <text x="185" y="60" fill="#6c7086" font-size="10">
+              [[Prototype]]
+            </text>
+            <text x="185" y="122" fill="#6c7086" font-size="10">
+              [[Prototype]]
+            </text>
+            <!-- Box.prototype → Object.prototype -->
+            <rect
+              x="510"
+              y="55"
+              width="140"
+              height="60"
+              rx="8"
+              fill="#1c2030"
+              stroke="#252a3a"
+            />
+            <text
+              x="580"
+              y="76"
+              text-anchor="middle"
+              fill="#cdd6f4"
+              font-size="11"
+              font-weight="500"
+            >
+              Object.prototype
+            </text>
+            <text
+              x="580"
+              y="95"
+              text-anchor="middle"
+              fill="#6c7086"
+              font-size="11"
+            >
+              toString(), etc.
+            </text>
+            <line
+              x1="460"
+              y1="85"
+              x2="508"
+              y2="85"
+              stroke="#6c7086"
+              stroke-width="1.2"
+              marker-end="url(#arr1)"
+            />
+          </svg>
+        </div>
+
+        <div class="callout callout-warn">
+          <span class="callout-icon">⚠️</span>
+          <div class="callout-body">
+            <div class="callout-title">Don't re-assign prototype</div>
+            <p>
+              Never do <code>Box.prototype = { ... }</code>. This replaces the
+              entire prototype object and loses the
+              <code>constructor</code> reference. Mutate it with
+              <code>Box.prototype.method = ...</code> instead.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <!--  LEVEL 4 · Longer Chains                       -->
+      <!-- ═══════════════════════════════════════════════ -->
+      <section class="chapter" id="l4">
+        <div class="chapter-header">
+          <span class="chapter-num">Level 04</span>
+          <h2>Building longer chains (inheritance)</h2>
+        </div>
+
+        <p>
+          To make one constructor inherit from another — creating a proper class
+          hierarchy — you link their prototypes using
+          <code>Object.setPrototypeOf()</code>.
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span
+            ><span class="code-label">multi-level inheritance</span>
+          </div>
+          <pre><span class="kw">function</span> <span class="cls">Animal</span>(<span class="prop">name</span>) {
+  <span class="kw">this</span>.<span class="prop">name</span> = <span class="prop">name</span>;
+}
+<span class="cls">Animal</span>.<span class="prop">prototype</span>.<span class="fn">breathe</span> = <span class="kw">function</span>() {
+  <span class="kw">return</span> <span class="str">`</span><span class="prop">${<span class="kw">this</span>.<span class="prop">name</span>}</span><span class="str"> breathes`</span>;
+};
+ 
+<span class="kw">function</span> <span class="cls">Dog</span>(<span class="prop">name</span>, <span class="prop">breed</span>) {
+  <span class="cls">Animal</span>.<span class="fn">call</span>(<span class="kw">this</span>, <span class="prop">name</span>); <span class="cmt">// call parent constructor</span>
+  <span class="kw">this</span>.<span class="prop">breed</span> = <span class="prop">breed</span>;
+}
+<span class="cmt">// Link Dog's prototype to Animal's prototype</span>
+<span class="fn">Object</span>.<span class="fn">setPrototypeOf</span>(<span class="cls">Dog</span>.<span class="prop">prototype</span>, <span class="cls">Animal</span>.<span class="prop">prototype</span>);
+<span class="cls">Dog</span>.<span class="prop">prototype</span>.<span class="fn">bark</span> = <span class="kw">function</span>() {
+  <span class="kw">return</span> <span class="str">`</span><span class="prop">${<span class="kw">this</span>.<span class="prop">name</span>}</span><span class="str"> says woof!`</span>;
+};
+ 
+<span class="kw">const</span> <span class="prop">rex</span> = <span class="kw">new</span> <span class="cls">Dog</span>(<span class="str">"Rex"</span>, <span class="str">"Labrador"</span>);
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">rex</span>.<span class="fn">bark</span>());    <span class="cmt">// "Rex says woof!"    ← Dog.prototype</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">rex</span>.<span class="fn">breathe</span>()); <span class="cmt">// "Rex breathes"      ← Animal.prototype</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">rex</span>.<span class="fn">toString</span>()); <span class="cmt">// "[object Object]"  ← Object.prototype</span></pre>
+        </div>
+
+        <p>The full prototype chain for <code>rex</code>:</p>
+        <div class="chain">
+          <span class="chain-node highlight">rex</span>
+          <span class="chain-arrow">→</span>
+          <span class="chain-node">Dog.prototype</span>
+          <span class="chain-arrow">→</span>
+          <span class="chain-node">Animal.prototype</span>
+          <span class="chain-arrow">→</span>
+          <span class="chain-node">Object.prototype</span>
+          <span class="chain-arrow">→</span>
+          <span class="chain-null">null</span>
+        </div>
+
+        <p>
+          When you call <code>rex.breathe()</code>, JS walks right along this
+          chain, skipping <code>rex</code> (no own), skipping
+          <code>Dog.prototype</code> (no <code>breathe</code>), and finding it
+          on <code>Animal.prototype</code>.
+        </p>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <!--  LEVEL 5 · Class Syntax                        -->
+      <!-- ═══════════════════════════════════════════════ -->
+      <section class="chapter" id="l5">
+        <div class="chapter-header">
+          <span class="chapter-num">Level 05</span>
+          <h2>Class syntax — just sugar over prototypes</h2>
+        </div>
+
+        <p>
+          ES6 <code>class</code> syntax was introduced to make prototype-based
+          inheritance easier to write and read. But here's the key insight:
+          <strong style="color: #fff"
+            >it compiles down to the exact same prototype chain</strong
+          >. Classes don't introduce a new inheritance model — they're syntactic
+          sugar.
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span
+            ><span class="code-label">class syntax = prototype chain</span>
+          </div>
+          <pre><span class="kw">class</span> <span class="cls">Animal</span> {
+  <span class="fn">constructor</span>(<span class="prop">name</span>) {
+    <span class="kw">this</span>.<span class="prop">name</span> = <span class="prop">name</span>;
+  }
+  <span class="fn">breathe</span>() {
+    <span class="kw">return</span> <span class="str">`</span><span class="prop">${<span class="kw">this</span>.<span class="prop">name</span>}</span><span class="str"> breathes`</span>;
+  }
+}
+ 
+<span class="kw">class</span> <span class="cls">Dog</span> <span class="kw">extends</span> <span class="cls">Animal</span> {
+  <span class="fn">constructor</span>(<span class="prop">name</span>, <span class="prop">breed</span>) {
+    <span class="kw">super</span>(<span class="prop">name</span>);   <span class="cmt">// calls Animal's constructor</span>
+    <span class="kw">this</span>.<span class="prop">breed</span> = <span class="prop">breed</span>;
+  }
+  <span class="fn">bark</span>() {
+    <span class="kw">return</span> <span class="str">`</span><span class="prop">${<span class="kw">this</span>.<span class="prop">name</span>}</span><span class="str"> says woof!`</span>;
+  }
+}
+ 
+<span class="kw">const</span> <span class="prop">rex</span> = <span class="kw">new</span> <span class="cls">Dog</span>(<span class="str">"Rex"</span>, <span class="str">"Labrador"</span>);
+ 
+<span class="cmt">// The prototype chain is IDENTICAL to Level 4:</span>
+<span class="cmt">// rex → Dog.prototype → Animal.prototype → Object.prototype → null</span>
+<span class="fn">Object</span>.<span class="fn">getPrototypeOf</span>(<span class="cls">Dog</span>.<span class="prop">prototype</span>) === <span class="cls">Animal</span>.<span class="prop">prototype</span>; <span class="cmt">// true</span></pre>
+        </div>
+
+        <table class="compare">
+          <thead>
+            <tr>
+              <th>Aspect</th>
+              <th>Constructor function (ES5)</th>
+              <th>Class syntax (ES6+)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Under the hood</td>
+              <td>Prototype chain</td>
+              <td>Same prototype chain ✓</td>
+            </tr>
+            <tr>
+              <td>Inheritance</td>
+              <td>
+                <code
+                  >Object.setPrototypeOf(Child.prototype,
+                  Parent.prototype)</code
+                >
+              </td>
+              <td><code>class Child extends Parent</code></td>
+            </tr>
+            <tr>
+              <td>Parent constructor</td>
+              <td><code>Parent.call(this, ...args)</code></td>
+              <td><code>super(...args)</code></td>
+            </tr>
+            <tr>
+              <td>Methods</td>
+              <td>Enumerable by default</td>
+              <td>Non-enumerable (better)</td>
+            </tr>
+            <tr>
+              <td>Readability</td>
+              <td>Verbose, error-prone</td>
+              <td>Clean, explicit</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-tip">
+          <span class="callout-icon">✅</span>
+          <div class="callout-body">
+            <div class="callout-title">Practical advice</div>
+            <p>
+              Use class syntax in modern code — it's cleaner and less
+              error-prone. But now that you understand the prototype chain
+              behind it, you can debug inheritance issues that classes abstract
+              away.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <!--  LEVEL 6 · Creation Patterns                   -->
+      <!-- ═══════════════════════════════════════════════ -->
+      <section class="chapter" id="l6">
+        <div class="chapter-header">
+          <span class="chapter-num">Level 06</span>
+          <h2>All the ways to create &amp; set a prototype</h2>
+        </div>
+
+        <p>MDN documents several patterns. Here's every one, with tradeoffs:</p>
+
+        <h3>1 · Object literal (implicit Object.prototype)</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">obj</span> = { <span class="prop">a</span>: <span class="num">1</span> };
+<span class="cmt">// obj → Object.prototype → null (automatic)</span></pre>
+        </div>
+
+        <h3>
+          2 · Object literal with __proto__ key (standard, not deprecated)
+        </h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">parent</span> = { <span class="prop">greet</span>() { <span class="kw">return</span> <span class="str">"hi"</span>; } };
+<span class="kw">const</span> <span class="prop">child</span>  = { <span class="prop">__proto__</span>: <span class="prop">parent</span>, <span class="prop">name</span>: <span class="str">"Alice"</span> };
+<span class="cmt">// child → parent → Object.prototype → null</span>
+<span class="cmt">// NOTE: { __proto__: x } in a literal is standard + fast.</span>
+<span class="cmt">// obj.__proto__ = x (accessor form) is deprecated — avoid it.</span></pre>
+        </div>
+
+        <h3>3 · Object.create()</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">parent</span> = { <span class="fn">greet</span>() { <span class="kw">return</span> <span class="str">"hi"</span>; } };
+<span class="kw">const</span> <span class="prop">child</span>  = <span class="fn">Object</span>.<span class="fn">create</span>(<span class="prop">parent</span>);
+<span class="prop">child</span>.<span class="prop">name</span> = <span class="str">"Alice"</span>;
+ 
+<span class="cmt">// Bonus: create an object with NO prototype at all</span>
+<span class="kw">const</span> <span class="prop">dict</span> = <span class="fn">Object</span>.<span class="fn">create</span>(<span class="kw">null</span>);
+<span class="cmt">// dict has no toString, no hasOwnProperty — pure key/value store</span></pre>
+        </div>
+
+        <h3>4 · Constructor function + new</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span>
+          </div>
+          <pre><span class="kw">function</span> <span class="cls">Person</span>(<span class="prop">name</span>) { <span class="kw">this</span>.<span class="prop">name</span> = <span class="prop">name</span>; }
+<span class="kw">const</span> <span class="prop">alice</span> = <span class="kw">new</span> <span class="cls">Person</span>(<span class="str">"Alice"</span>);
+<span class="cmt">// alice → Person.prototype → Object.prototype → null</span></pre>
+        </div>
+
+        <h3>5 · class / extends (recommended)</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span>
+          </div>
+          <pre><span class="kw">class</span> <span class="cls">Person</span> { <span class="fn">constructor</span>(<span class="prop">n</span>) { <span class="kw">this</span>.<span class="prop">name</span> = <span class="prop">n</span>; } }
+<span class="kw">class</span> <span class="cls">Employee</span> <span class="kw">extends</span> <span class="cls">Person</span> { <span class="fn">constructor</span>(<span class="prop">n</span>, <span class="prop">role</span>) { <span class="kw">super</span>(<span class="prop">n</span>); <span class="kw">this</span>.<span class="prop">role</span> = <span class="prop">role</span>; } }
+<span class="kw">const</span> <span class="prop">e</span> = <span class="kw">new</span> <span class="cls">Employee</span>(<span class="str">"Alice"</span>, <span class="str">"Engineer"</span>);
+<span class="cmt">// e → Employee.prototype → Person.prototype → Object.prototype → null</span></pre>
+        </div>
+
+        <h3>
+          6 · Object.setPrototypeOf() (mutate after creation — avoid when
+          possible)
+        </h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">a</span> = {};
+<span class="kw">const</span> <span class="prop">b</span> = { <span class="fn">greet</span>() { <span class="kw">return</span> <span class="str">"hi"</span>; } };
+<span class="fn">Object</span>.<span class="fn">setPrototypeOf</span>(<span class="prop">a</span>, <span class="prop">b</span>);
+<span class="cmt">// Works, but mutating the prototype chain at runtime</span>
+<span class="cmt">// disables JS engine optimizations. Use only if you must.</span></pre>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════════════════════════════ -->
+      <!--  LEVEL 7 · Gotchas & Performance               -->
+      <!-- ═══════════════════════════════════════════════ -->
+      <section class="chapter" id="l7">
+        <div class="chapter-header">
+          <span class="chapter-num">Level 07</span>
+          <h2>Gotchas &amp; performance tips</h2>
+        </div>
+
+        <h3>Gotcha 1 · Monkey-patching built-ins</h3>
+        <p>
+          Adding methods to <code>Array.prototype</code>,
+          <code>Object.prototype</code>, etc. is called
+          <em>monkey patching</em>. Don't do it — it can break future JS
+          features and surprise other developers.
+        </p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span>
+          </div>
+          <pre><span class="cmt">// ❌ Don't do this</span>
+<span class="cls">Array</span>.<span class="prop">prototype</span>.<span class="fn">sum</span> = <span class="kw">function</span>() {
+  <span class="kw">return</span> <span class="kw">this</span>.<span class="fn">reduce</span>((<span class="prop">a</span>, <span class="prop">b</span>) => <span class="prop">a</span> + <span class="prop">b</span>, <span class="num">0</span>);
+};
+<span class="cmt">// ✅ Do this instead — a standalone utility function</span>
+<span class="kw">function</span> <span class="fn">sumArray</span>(<span class="prop">arr</span>) {
+  <span class="kw">return</span> <span class="prop">arr</span>.<span class="fn">reduce</span>((<span class="prop">a</span>, <span class="prop">b</span>) => <span class="prop">a</span> + <span class="prop">b</span>, <span class="num">0</span>);
+}</pre>
+        </div>
+
+        <h3>Gotcha 2 · for...in iterates the whole chain</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span>
+          </div>
+          <pre><span class="kw">const</span> <span class="prop">parent</span> = { <span class="prop">x</span>: <span class="num">1</span> };
+<span class="kw">const</span> <span class="prop">child</span>  = { <span class="prop">__proto__</span>: <span class="prop">parent</span>, <span class="prop">y</span>: <span class="num">2</span> };
+ 
+<span class="kw">for</span> (<span class="kw">const</span> <span class="prop">key</span> <span class="kw">in</span> <span class="prop">child</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">key</span>); <span class="cmt">// "y" then "x" — x comes from parent!</span>
+}
+ 
+<span class="cmt">// Guard with hasOwn to only get own properties:</span>
+<span class="kw">for</span> (<span class="kw">const</span> <span class="prop">key</span> <span class="kw">in</span> <span class="prop">child</span>) {
+  <span class="kw">if</span> (<span class="fn">Object</span>.<span class="fn">hasOwn</span>(<span class="prop">child</span>, <span class="prop">key</span>)) <span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">key</span>); <span class="cmt">// only "y"</span>
+}
+ 
+<span class="cmt">// Or use Object.keys() — only returns own enumerable properties</span>
+<span class="fn">Object</span>.<span class="fn">keys</span>(<span class="prop">child</span>); <span class="cmt">// ["y"]</span></pre>
+        </div>
+
+        <h3>Gotcha 3 · Long chains hurt performance</h3>
+        <div class="callout callout-warn">
+          <span class="callout-icon">⚠️</span>
+          <div class="callout-body">
+            <div class="callout-title">Chain length matters</div>
+            <p>
+              Each step up the prototype chain is an extra lookup. For hot code
+              paths (called thousands of times), a 10-level chain is measurably
+              slower than a 2-level one. Keep chains short — rarely deeper than
+              3–4 levels. Accessing a non-existent property is worst: it always
+              traverses the <em>entire</em> chain before returning
+              <code>undefined</code>.
+            </p>
+          </div>
+        </div>
+
+        <h3>Gotcha 4 · Mutating a shared prototype affects all instances</h3>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-lang">javascript</span>
+          </div>
+          <pre><span class="kw">function</span> <span class="cls">Cat</span>() {}
+<span class="cls">Cat</span>.<span class="prop">prototype</span>.<span class="fn">speak</span> = () => <span class="str">"meow"</span>;
+ 
+<span class="kw">const</span> <span class="prop">c1</span> = <span class="kw">new</span> <span class="cls">Cat</span>();
+<span class="kw">const</span> <span class="prop">c2</span> = <span class="kw">new</span> <span class="cls">Cat</span>();
+ 
+<span class="cmt">// Mutate the prototype AFTER instances exist</span>
+<span class="cls">Cat</span>.<span class="prop">prototype</span>.<span class="fn">speak</span> = () => <span class="str">"ROAR"</span>;
+ 
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">c1</span>.<span class="fn">speak</span>()); <span class="cmt">// "ROAR" — c1 is affected!</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="prop">c2</span>.<span class="fn">speak</span>()); <span class="cmt">// "ROAR" — c2 is affected too!</span>
+<span class="cmt">// All instances share the same prototype object — changes are global.</span></pre>
+        </div>
+
+        <h3>Quick-reference cheatsheet</h3>
+        <table class="compare">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Modern API</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Get an object's prototype</td>
+              <td><code>Object.getPrototypeOf(obj)</code></td>
+            </tr>
+            <tr>
+              <td>Set a prototype (at creation)</td>
+              <td>
+                <code>Object.create(proto)</code> or
+                <code>{ __proto__: proto }</code>
+              </td>
+            </tr>
+            <tr>
+              <td>Set a prototype (after creation)</td>
+              <td><code>Object.setPrototypeOf(obj, proto)</code></td>
+            </tr>
+            <tr>
+              <td>Check if own property</td>
+              <td><code>Object.hasOwn(obj, 'key')</code></td>
+            </tr>
+            <tr>
+              <td>List own enumerable keys</td>
+              <td><code>Object.keys(obj)</code></td>
+            </tr>
+            <tr>
+              <td>Check if in chain</td>
+              <td><code>Proto.isPrototypeOf(obj)</code></td>
+            </tr>
+            <tr>
+              <td>Check instance of chain</td>
+              <td><code>obj instanceof Constructor</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+    <!-- /wrapper -->
+
+    <footer>
+      <p style="margin-bottom: 8px">
+        Built from
+        <a
+          href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Inheritance_and_the_prototype_chain"
+          target="_blank"
+          >MDN: Inheritance and the prototype chain</a
+        >
+      </p>
+      <p>JS Prototypes: Zero → Hero &nbsp;·&nbsp; All 8 levels covered</p>
+    </footer>
+
+    <script>
+      window.addEventListener("scroll", () => {
+        const doc = document.documentElement;
+        const scrollTop = doc.scrollTop || document.body.scrollTop;
+        const scrollHeight = doc.scrollHeight - doc.clientHeight;
+        document.getElementById("progress-bar").style.width =
+          (scrollTop / scrollHeight) * 100 + "%";
+      });
+    </script>
+  </body>
+</html>
